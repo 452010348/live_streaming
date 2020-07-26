@@ -1,0 +1,1 @@
+ffmpeg -re -stream_loop -1 -i mayun.flv -c:v libx264 -preset superfast -tune zerolatency -bufsize 200k -c:a aac -ar 44100 -f flv rtmp://127.0.0.1:1935/live/STREAM_NAME

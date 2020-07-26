@@ -1,0 +1,244 @@
+<!doctype html>
+<html>
+
+<head>
+  <style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    img{
+        border:0;
+    }
+    ol, ul ,li{list-style: none;}
+    body,html{width:100%;height:100%;overflow: hidden;}
+    #url {
+      width: 350px;
+    }
+    #log {
+      width: 640px;
+      height: 200px;
+      margin-top: 10px;
+      border-left: 0px;
+      border-right: 0px;
+      padding-left: 0px;
+      padding-right: 0px;
+      display: block;
+      background-color: #33454efa;
+      color: white;
+      font-size: medium;
+      font-family: 'Lucida Console', Monaco, monospace;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <h1>NodePlayer.js</h1> -->
+  <div>
+    <!-- <div>简单的直播流播放器在纯JavaScript.</div> -->
+    <canvas id="video" width="640" height="480"></canvas>
+  </div>
+  <input id="url" value="ws://127.0.0.1:8000/live/STREAM_NAME.flv" />
+  <!-- <input id="url" value="https://tw.004cdn.com/obs/011.flv" /> -->
+  <button id="play" type="">播放</button>
+  <label for="enableAudio">声音：</label>
+  <input type="range" id="audioCB" form="audioCB" value="1" min="0" max="1" step="0.1">
+  <br />
+  <textarea id="log" rows="8"></textarea>
+</body>
+
+</html>
+
+<script src="NodePlayer-full-0.5.12-min.js"></script>
+<script>
+  window.onload = function () {
+    var url = document.getElementById("url");
+    var button = document.getElementById("play");
+    var logview = document.getElementById("log");
+    var audioCB = document.getElementById("audioCB");
+
+    var c = document.getElementById('video');
+    c.width
+
+    Module.print = (text) => {
+      logview.innerHTML = logview.innerHTML + text + "\n";
+
+    };
+
+    Module.printErr = (text) => {
+      logview.innerHTML = logview.innerHTML + text + "\n";
+    };
+
+    var np = new NodePlayer();
+    var isStarting = false;
+    np.on('start', () => {
+      Module.print('NodePlayer on start');
+    });
+    np.on('close', () => {
+      Module.print('NodePlayer on close');
+    });
+    np.on('error', (err) => {
+      Module.print('NodePlayer on error',err);
+    });
+    np.setView('video');
+    np.setScaleMode(1);
+    np.setVolume(audioCB.value);
+    // np.setBufferTime(6e4);
+    // np.skipLoopFilter(32);
+    var playback = function (event) {
+      if (isStarting) {
+        np.stop();
+        button.value = "start";
+        isStarting = false;
+      } else {
+        np.start(url.value);
+        button.value = "stop";
+        isStarting = true;
+      }
+    }
+
+    var audioChange = function () {
+        console.log(audioCB.value)
+      np.setVolume(audioCB.value);
+    }
+
+    if (button.addEventListener) {
+      button.addEventListener("click", playback, false);
+    } else if (button.attachEvent) {
+      button.attachEvent('onclick', playback);
+    }
+
+
+
+    if (audioCB.addEventListener) {
+      audioCB.addEventListener("click", audioChange, false);
+    } else if (audioCB.attachEvent) {
+      audioCB.attachEvent('onclick', audioChange);
+    }
+  };
+
+</script>
+
+<!--
+NodePlayer.debug(false)
+类方法
+是否开启控制台调试打印，全局调用
+
+useMSE()
+自动测试浏览器是否支持MSE播放，如不支持，仍然使用软解码。
+紧随 new 后调用，不调用则只使用软解。
+注意：使用MSE后不支持累积延迟消除
+
+setKeepScreenOn()
+开启屏幕常亮, 在start前调用
+在手机浏览器上, canvas标签渲染视频并不会像video标签那样保持屏幕常亮
+如果需要该功能, 可以调用此方法, 会有少量cpu消耗, pc浏览器不会执行
+此方法为兼容实现，并不保证所有浏览器都支持
+
+setView(“video1”)
+传入 canvas视图的id，当使用mse时，播放器自动转换为video标签
+
+setScaleMode(0)
+视频缩放模式, 当视频分辨率比例与canvas显示区域比例不同时,缩放效果不同:
+
+0 视频画面完全填充canvas区域,画面会被拉伸
+1 视频画面做等比缩放后,高或宽对齐canvas区域,画面不被拉伸,但有黑边
+2 视频画面做等比缩放后,完全填充canvas区域,画面不被拉伸,没有黑边,但画面显示不全
+注意：软解时有效
+
+setBufferTime(500)
+设置最大缓冲时长，单位毫秒
+注意：只在软解时有效
+
+setVolume(1.0)
+设置音量大小，取值0.0 — 1.0
+当为0.0时，完全无声
+当为1.0时，最大音量，默认值
+
+resizeView(640,360)
+重新调整视图大小
+640 -宽
+360 -高
+调用后播放器内部自动将canvas视图大小和css大小修改为设定值
+注意：如果需要手动调整高度后也调用该方法，否则可能引起GL渲染尺寸改变影响画面效果
+
+v0.5.30版之后不再建议使用，请使用onResize
+
+onResize(rotate)
+通知底层重新计算渲染尺寸
+在播放过程中，如果业务层调整了视图大小，调用该方法通知底层重新计算渲染尺寸，修复可能引起的画面模糊。
+rotate - 旋转角度 默认0，可设90，270，旋转画面。
+可用于实现监控画面小窗和全屏效果，由于iOS没有全屏API，此方法可以模拟页面内全屏效果而且多端效果一致。
+
+注意，当旋转90度后，用户也会旋转手机，这时如果手机未锁定方向，画面又可能因为浏览器旋转导致画面又旋转了。可以监听页面旋转事件，将角度又旋转回0
+
+setCryptoKey(key)
+设置视频解密密码，长度16字节。可以实现SDK加密推流或NMS服务端加密后的解密播放
+
+screenshot(filename, format, quality)
+截图，调用后弹出下载框保存截图
+filename: 保存的文件名
+format : 截图的格式，可选png或jpeg
+quality: 可选参数，当格式是jpeg时，压缩质量，取值0.0 ~ 1.0
+
+v0.5.33后可以，手机浏览器不一定能保存下来
+
+start(“http://demo.com/live/stream.flv“)
+开始播放视频
+
+stop()
+停止播放视频
+
+fullscreen()
+全屏播放视频
+
+iOS不支持，iPadOS13后支持
+
+事件
+通过 player.on(‘事件’,事件处理器) 处理
+
+‘start’
+当网络连接成功并有数据返回时回调
+
+‘stop’
+当本地调用stop方法或远端断开连接时回调
+
+‘error’
+当连接错误或播放中发生错误时回调，1个回调参数
+e: 错误信息
+
+‘audioInfo’
+当解析出音频信息时回调，3个回调参数
+r：采样率
+c：声道数
+codec : 编码名
+
+‘videoInfo’
+当解析出视频信息时回调，3个回调参数
+w：视频宽
+h：视频高
+codec : 编码名
+
+‘videoFrame’
+当前渲染的视频pts，1个回调参数
+pts ：单位毫秒
+
+‘videoSei’
+当前解析出h264 sei信息时回调，2个回调参数
+sei : Uint8Array格式
+pts : 单位毫秒
+
+v0.5.32及以后版本
+
+‘stats’
+流状态统计，流开始播放后回调，每秒1次，1个回调参数
+s:
+{
+buf: 当前缓冲区时长，单位毫秒,
+fps: 当前视频帧率,
+abps: 当前音频码率，单位bit,
+vbps: 当前视频码率，单位bit，
+ts:当前视频帧pts，单位毫秒
+}
+-->

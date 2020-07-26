@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<e:Skin class="Video" width="480" height="784" xmlns:e="http://ns.egret.com/eui">
+	<e:Group id="video_box" left="0" right="0" top="0" bottom="0" x="0" y="0" scaleX="1" scaleY="1" height="338"/>
+	<e:Group id="loadding_box" left="0" right="0" top="0" bottom="0" height="784">
+		<e:Label id="text_title" text="视频载入中..." y="203" horizontalCenter="0" size="30" fontFamily="Microsoft YaHei" x="184" scaleX="1" scaleY="1"/>
+	</e:Group>
+</e:Skin>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset=utf-8>
+  <meta name=description content="">
+  <meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #video {
+      object-fit: fill;
+    }
+  </style>
+</head>
+
+<body id="app">
+  <div id="video-box">
+    <video id="video" preload="auto" controls autobuffer webkit-playsinline="true" playsinline="true" x5-playsinline="true" x5-video-player-type="h5"
+      autoplay loop></video>
+  </div>
+  <button type="button" id="muted" style="margin-left:50%;">静音</button>
+</body>
+<script>
+  var video = document.getElementById('video');
+  document.getElementById('app').style.height = window.innerHeight + 'px'
+  if (Hls.isSupported()) {
+    var hls = new Hls();
+    hls.loadSource('http://127.0.0.1:8000/live/STREAM_NAME/index.m3u8');
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      video.play();
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = 'http://127.0.0.1:8000/live/STREAM_NAME/index.m3u8';
+    video.addEventListener('loadedmetadata', function () {
+      video.play();
+    });
+  }
+  document.getElementById('app').addEventListener('touchstart', function () {
+    video.play()
+  })
+  document.getElementById('muted').addEventListener('click', function () {
+    video.muted = !video.muted
+  })
+</script>
+
+</html>

@@ -1,0 +1,5 @@
+class SAS {
+	
+	public constructor() {
+	}
+}
